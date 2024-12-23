@@ -39,7 +39,7 @@ dependencies:
   http: ^1.2.2
   dio: ^5.7.0
   html: ^0.15.0
-  # webview_flutter: ^4.10.0
+  webview_flutter: ^4.10.0
   # flutter_html: ^2.1.2
   flutter_widget_from_html: ^0.15.3
 

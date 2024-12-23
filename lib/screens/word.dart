@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:dio/dio.dart';
-import 'package:html/parser.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class WordScreen extends StatefulWidget {
   const WordScreen({super.key, required this.word});
@@ -14,52 +11,100 @@ class WordScreen extends StatefulWidget {
 }
 
 class _WordScreenState extends State<WordScreen> {
-  List<String> titles = [];
+  late WebViewController _controller;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    scrapeData();
-  }
+    _controller = WebViewController();
 
-  Future<void> scrapeData() async {
-    try {
-      final dio = Dio(); // Khởi tạo Dio
-      final response = await dio.get(
-        'https://www.ldoceonline.com/dictionary/${widget.word}',
-        options: Options(headers: {'User-Agent': 'Mozilla/5.0'}),
-      );
+    final wordChain = widget.word.toLowerCase().replaceAll(RegExp(r'\s+'), '-');
+    final url = 'https://www.ldoceonline.com/dictionary/$wordChain';
 
-      if (response.statusCode == 200) {
-        final document = parse(response.data);
-
-        setState(() {
-          titles = document
-              .querySelectorAll('.dictionary')
-              .map((element) => element.outerHtml)
-              .toList();
+    _controller.setNavigationDelegate(NavigationDelegate(
+      onPageStarted: (String url) {},
+      onPageFinished: (String url) async {
+        await _controller.runJavaScript("""
+        document.querySelectorAll('iframe').forEach((iframe) => {
+        iframe.remove();
         });
-      } else {
-        throw Exception('Failed to scrape data');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
+
+        document.querySelectorAll('body > *').forEach((element) => {
+        if (!element.classList.contains('content')) {
+          element.remove();
+        }
+        });
+
+        const columnLeft = document.body.querySelectorAll('.column-left');
+        columnLeft.forEach(element => element.remove());
+
+        const columnRight = document.body.querySelectorAll('.responsive_cell2');
+        columnRight.forEach(element => element.remove());
+
+        const titleElement = document.body.querySelectorAll('.pagetitle');
+        titleElement.forEach(element => element.remove());
+
+        const adsElement = document.body.querySelectorAll('.parallax-container');
+        adsElement.forEach(element => element.remove());
+
+        const topicElement = document.body.querySelectorAll('.topics_container');
+        topicElement.forEach(element => element.remove());
+
+        const tailElement = document.body.querySelectorAll('title .Tail');
+        tailElement.forEach(element => element.remove());
+
+        const crossRefElement = document.body.querySelectorAll('.asset > .crossRef');
+        crossRefElement.forEach(element => element.remove());
+
+        const adsBottom = document.body.querySelectorAll('#ad_btmslot');
+        adsBottom.forEach(element => element.remove());
+
+        // Change anchor element to text
+        document.querySelectorAll('a').forEach(anchor => {
+        const textNode = document.createTextNode(anchor.textContent || anchor.innerText);
+        anchor.replaceWith(textNode);
+        });
+
+        """);
+
+        // Complete loading
+        setState(() {
+          _isLoading = false;
+        });
+      },
+    ));
+
+    _controller.loadRequest(Uri.parse(url));
   }
 
   @override
   Widget build(BuildContext context) {
-    String word = widget.word;
-
     return Scaffold(
-      appBar: AppBar(title: Text(word)),
-      body: titles.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: HtmlWidget(
-                titles[0],
-              ),
+      appBar: AppBar(
+        title: Text(
+          widget.word,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.favorite,
+              color: Theme.of(context).colorScheme.primaryContainer,
             ),
+          )
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 16, 4, 16),
+        child: Stack(
+          children: [
+            if (_isLoading) const Center(child: CircularProgressIndicator()),
+            if (!_isLoading) WebViewWidget(controller: _controller),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,16 +1,15 @@
 import 'package:english_dictionary/screens/home.dart';
-import 'package:english_dictionary/screens/word.dart';
 import 'package:flutter/material.dart';
-// import 'package:english_dictionary/screens/home.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
 final theme = ThemeData(
   colorScheme: ColorScheme.fromSeed(
     brightness: Brightness.light,
-    seedColor: Colors.white,
+    seedColor: const Color.fromARGB(250, 250, 50, 0),
   ),
   textTheme: GoogleFonts.latoTextTheme(),
+  scaffoldBackgroundColor: Colors.white,
 );
 
 void main() {
@@ -22,8 +21,8 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      // theme: theme,
+    return MaterialApp(
+      theme: theme,
       home: HomeScreen(),
     );
   }
