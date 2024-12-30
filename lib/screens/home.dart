@@ -6,7 +6,12 @@ import 'package:dio/dio.dart';
 import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    required this.onToggleFavorite,
+  });
+
+  final void Function(String word) onToggleFavorite;
 
   @override
   State<HomeScreen> createState() {
@@ -27,7 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _selectWord(BuildContext context, String word) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (ctx) => WordScreen(word: word),
+        builder: (ctx) => WordScreen(
+          word: word,
+          onToggleFavorite: widget.onToggleFavorite,
+        ),
       ),
     );
   }
@@ -75,8 +83,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Stack(
         children: [
-          Center(
-            child: Text('Home'),
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    'Search history',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+              ),
+            ),
           ),
           if (_searchResults.isNotEmpty)
             Container(

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:english_dictionary/screens/word.dart';
 import 'package:flutter/material.dart';
 
 class SearchBarWidget extends StatefulWidget {
